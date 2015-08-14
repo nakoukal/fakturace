@@ -1,0 +1,30 @@
+{extends '../@pdf.layout.latte'}
+{block #content}
+<i>Dne: {$today}</i>
+<br><br>
+<div class="head">Vyúčtování pro {$faktura->firma->Nazev}</div>
+<br>
+<div class="pdfprint">
+<table>
+	<thead>
+		<tr>
+			<th>Datum</th>
+			<th>Druh práce</th>
+			<th>Popis práce</th>
+			<th>Délka</th>
+			<th>Cena</th>
+		</tr>
+	</thead>
+	<tr n:foreach="$works as $work">
+		<td>{$work->Datum}</td>
+		<td>{$work->typ->Typ}</td>
+		<td>{$work->Popis}</td>
+		<td n:if="$work->TypID == 1">{$work->Delka} km.</td>
+		<td n:if="$work->TypID != 1">{$work->Delka} hod.</td>
+		<td>{$work->Cena} Kč</td>
+	</tr>
+	<tr>
+		<th colspan="5" align="right">Cena celkem {$faktura->Cena} Kč.</th>
+	</tr>
+</table>
+</div>
