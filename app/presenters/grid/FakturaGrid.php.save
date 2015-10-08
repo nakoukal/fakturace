@@ -51,7 +51,7 @@ class FakturaGrid extends Grid{
 		$this->addColumn('Zaplaceno', 'Zaplaceno', '130px')
 				->setDateEditable()
 //				->setRenderer(function($row){return ($row['Zaplaceno']==NULL)?'':date('d.m.Y', strtotime($row['Zaplaceno']));})
-				->setCellRenderer(function($row){return (Date('Y-m-d', strtotime($row['Zaplaceno'])) > Date('Y-m-d',strtotime('2000-01-01'))) ? "background-color:#E4FFCC" : "background-color:#ff0000";})
+				->setCellRenderer(function($row){return strtotime(Date('Y-m-d'))) ? "background-color:#E4FFCC" : "background-color:#ff0000";})
 				->setDateTimeFilter();
 		$this->addColumn('Poznamka', 'Poznamka','200px')
 				->setTextEditable();
