@@ -1,16 +1,16 @@
 <?php
 
 /**
- * This file is part of the Nette Framework (http://nette.org)
- * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
+ * This file is part of the Latte (https://latte.nette.org)
+ * Copyright (c) 2008 David Grudl (https://davidgrudl.com)
  */
 
 namespace Latte\Macros;
 
-use Latte,
-	Latte\CompileException,
-	Latte\MacroNode,
-	Latte\PhpWriter;
+use Latte;
+use Latte\CompileException;
+use Latte\MacroNode;
+use Latte\PhpWriter;
 
 
 /**
@@ -283,7 +283,7 @@ class CoreMacros extends MacroSet
 	 */
 	public function macroClass(MacroNode $node, PhpWriter $writer)
 	{
-		return $writer->write('if ($_l->tmp = array_filter(%node.array)) echo \' class="\' . %escape(implode(" ", array_unique($_l->tmp))) . \'"\'');
+		return $writer->write('if ($_l->tmp = array_filter(%node.array)) echo \' class="\', %escape(implode(" ", array_unique($_l->tmp))), \'"\'');
 	}
 
 

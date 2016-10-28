@@ -1,14 +1,14 @@
 <?php
 
 /**
- * This file is part of the Nette Framework (http://nette.org)
- * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
+ * This file is part of the Nette Framework (https://nette.org)
+ * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
  */
 
 namespace Nette\Http;
 
-use Nette,
-	Nette\Utils\Strings;
+use Nette;
+use Nette\Utils\Strings;
 
 
 /**
@@ -19,7 +19,7 @@ use Nette,
 class RequestFactory extends Nette\Object
 {
 	/** @internal */
-	const CHARS = '#^[\x09\x0A\x0D\x20-\x7E\xA0-\x{10FFFF}]*+\z#u';
+	const CHARS = '\x09\x0A\x0D\x20-\x7E\xA0-\x{10FFFF}';
 
 	/** @var array */
 	public $urlFilters = array(
@@ -137,6 +137,7 @@ class RequestFactory extends Nette\Object
 		$gpc = (bool) get_magic_quotes_gpc();
 
 		// remove fucking quotes, control characters and check encoding
+		$reChars = '#^[' . self::CHARS . ']*+\z#u';
 		if ($gpc || !$this->binary) {
 			$list = array(& $query, & $post, & $cookies);
 			while (list($key, $val) = each($list)) {
@@ -147,7 +148,7 @@ class RequestFactory extends Nette\Object
 						$k = stripslashes($k);
 					}
 
-					if (!$this->binary && is_string($k) && (!preg_match(self::CHARS, $k) || preg_last_error())) {
+					if (!$this->binary && is_string($k) && (!preg_match($reChars, $k) || preg_last_error())) {
 						// invalid key -> ignore
 
 					} elseif (is_array($v)) {
@@ -158,8 +159,8 @@ class RequestFactory extends Nette\Object
 						if ($gpc && !$useFilter) {
 							$v = stripSlashes($v);
 						}
-						if (!$this->binary && (!preg_match(self::CHARS, $v) || preg_last_error())) {
-							$v = '';
+						if (!$this->binary) {
+							$v = (string) preg_replace('#[^' . self::CHARS . ']+#u', '', $v);
 						}
 						$list[$key][$k] = $v;
 					}
@@ -174,7 +175,7 @@ class RequestFactory extends Nette\Object
 		$list = array();
 		if (!empty($_FILES)) {
 			foreach ($_FILES as $k => $v) {
-				if (!$this->binary && is_string($k) && (!preg_match(self::CHARS, $k) || preg_last_error())) {
+				if (!$this->binary && is_string($k) && (!preg_match($reChars, $k) || preg_last_error())) {
 					continue;
 				}
 				$v['@'] = & $files[$k];
@@ -190,7 +191,7 @@ class RequestFactory extends Nette\Object
 				if ($gpc) {
 					$v['name'] = stripSlashes($v['name']);
 				}
-				if (!$this->binary && (!preg_match(self::CHARS, $v['name']) || preg_last_error())) {
+				if (!$this->binary && (!preg_match($reChars, $v['name']) || preg_last_error())) {
 					$v['name'] = '';
 				}
 				if ($v['error'] !== UPLOAD_ERR_NO_FILE) {
@@ -200,7 +201,7 @@ class RequestFactory extends Nette\Object
 			}
 
 			foreach ($v['name'] as $k => $foo) {
-				if (!$this->binary && is_string($k) && (!preg_match(self::CHARS, $k) || preg_last_error())) {
+				if (!$this->binary && is_string($k) && (!preg_match($reChars, $k) || preg_last_error())) {
 					continue;
 				}
 				$list[] = array(
@@ -236,12 +237,21 @@ class RequestFactory extends Nette\Object
 
 		// proxy
 		foreach ($this->proxies as $proxy) {
-			if (Helpers::ipMatch($remoteAddr, $proxy)) {
-				if (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-					$remoteAddr = trim(current(explode(',', $_SERVER['HTTP_X_FORWARDED_FOR'])));
-				}
-				if (isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
-					$remoteHost = trim(current(explode(',', $_SERVER['HTTP_X_FORWARDED_HOST'])));
+			if (Helpers::ipMatch($remoteAddr, $proxy) && !empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+				$proxies = $this->proxies;
+				$xForwardedForWithoutProxies = array_filter(explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']), function ($ip) use ($proxies) {
+					return !array_filter($proxies, function ($proxy) use ($ip) {
+						return Helpers::ipMatch(trim($ip), $proxy);
+					});
+				});
+				$remoteAddr = trim(end($xForwardedForWithoutProxies));
+
+				if (!empty($_SERVER['HTTP_X_FORWARDED_HOST'])) {
+					$xForwardedForRealIpKey = key($xForwardedForWithoutProxies);
+					$xForwardedHost = explode(',', $_SERVER['HTTP_X_FORWARDED_HOST']);
+					if (isset($xForwardedHost[$xForwardedForRealIpKey])) {
+						$remoteHost = trim($xForwardedHost[$xForwardedForRealIpKey]);
+					}
 				}
 				break;
 			}

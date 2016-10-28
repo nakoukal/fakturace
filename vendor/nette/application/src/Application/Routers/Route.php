@@ -1,15 +1,15 @@
 <?php
 
 /**
- * This file is part of the Nette Framework (http://nette.org)
- * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
+ * This file is part of the Nette Framework (https://nette.org)
+ * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
  */
 
 namespace Nette\Application\Routers;
 
-use Nette,
-	Nette\Application,
-	Nette\Utils\Strings;
+use Nette;
+use Nette\Application;
+use Nette\Utils\Strings;
 
 
 /**
@@ -17,11 +17,6 @@ use Nette,
  * HTTP request to a Request object for dispatch and vice-versa.
  *
  * @author     David Grudl
- *
- * @property-read string $mask
- * @property-read array $defaults
- * @property-read int $flags
- * @property-read string|FALSE $targetPresenter
  */
 class Route extends Nette\Object implements Application\IRouter
 {
@@ -107,23 +102,29 @@ class Route extends Nette\Object implements Application\IRouter
 	/** @var int */
 	private $flags;
 
+	/** @var Nette\Http\Url */
+	private $lastRefUrl;
+
+	/** @var string */
+	private $lastBaseUrl;
+
 
 	/**
 	 * @param  string  URL mask, e.g. '<presenter>/<action>/<id \d{1,3}>'
-	 * @param  array|string   default values or metadata
+	 * @param  array|string|\Closure  default values or metadata or callback for NetteModule\MicroPresenter
 	 * @param  int     flags
 	 */
 	public function __construct($mask, $metadata = array(), $flags = 0)
 	{
 		if (is_string($metadata)) {
-			$a = strrpos($metadata, ':');
+			$a = strrpos($tmp = $metadata, ':');
 			if (!$a) {
 				throw new Nette\InvalidArgumentException("Second argument must be array or string in format Presenter:action, '$metadata' given.");
 			}
-			$metadata = array(
-				self::PRESENTER_KEY => substr($metadata, 0, $a),
-				'action' => $a === strlen($metadata) - 1 ? NULL : substr($metadata, $a + 1),
-			);
+			$metadata = array(self::PRESENTER_KEY => substr($tmp, 0, $a));
+			if ($a < strlen($tmp) - 1) {
+				$metadata['action'] = substr($tmp, $a + 1);
+			}
 		} elseif ($metadata instanceof \Closure || $metadata instanceof Nette\Callback) {
 			$metadata = array(
 				self::PRESENTER_KEY => 'Nette:Micro',
@@ -387,12 +388,14 @@ class Route extends Nette\Object implements Application\IRouter
 		} while (TRUE);
 
 
-		// absolutize path
-		if ($this->type === self::RELATIVE) {
-			$url = '//' . $refUrl->getAuthority() . $refUrl->getBasePath() . $url;
-
-		} elseif ($this->type === self::PATH) {
-			$url = '//' . $refUrl->getAuthority() . $url;
+		if ($this->type !== self::HOST) {
+			if ($this->lastRefUrl !== $refUrl) {
+				$scheme = ($this->flags & self::SECURED ? 'https://' : 'http://');
+				$basePath = ($this->type === self::RELATIVE ? $refUrl->getBasePath() : '');
+				$this->lastBaseUrl = $scheme . $refUrl->getAuthority() . $basePath;
+				$this->lastRefUrl = $refUrl;
+			}
+			$url = $this->lastBaseUrl . $url;
 
 		} else {
 			$host = $refUrl->getHost();
@@ -402,13 +405,12 @@ class Route extends Nette\Object implements Application\IRouter
 				'%tld%' => $host[0],
 				'%domain%' => isset($host[1]) ? "$host[1].$host[0]" : $host[0],
 			));
+			$url = ($this->flags & self::SECURED ? 'https:' : 'http:') . $url;
 		}
 
-		if (strpos($url, '//', 2) !== FALSE) {
+		if (strpos($url, '//', 7) !== FALSE) {
 			return NULL;
 		}
-
-		$url = ($this->flags & self::SECURED ? 'https:' : 'http:') . $url;
 
 		// build query string
 		if ($this->xlat) {
@@ -453,6 +455,13 @@ class Route extends Nette\Object implements Application\IRouter
 			} elseif (array_key_exists(self::VALUE, $meta)) {
 				$metadata[$name]['fixity'] = self::CONSTANT;
 			}
+		}
+
+		if (strpbrk($mask, '?<[') === FALSE) {
+			$this->re = '#' . preg_quote($mask, '#') . '/?\z#A';
+			$this->sequence = array($mask);
+			$this->metadata = $metadata;
+			return;
 		}
 
 		// PARSE MASK

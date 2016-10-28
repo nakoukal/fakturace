@@ -13,7 +13,7 @@ namespace Fakturace;
  */
 class FakturaRepository extends Repository{
 	public function GetTabledata() {
-		return $this->getTable()->select('FakturaID,FakturaID FakturaID2,FirmaID,Datum,Cena,Zaplaceno,Poznamka');
+		return $this->getTable()->select('FakturaID,FakturaID FakturaID2,FirmaID,Datum,Cena,Zaplaceno,Poznamka')->order('Datum DESC');
 	}
 	public function updateCena($PraceID){
 		$sql="UPDATE prace P JOIN typ T ON P.TypID=T.TypID

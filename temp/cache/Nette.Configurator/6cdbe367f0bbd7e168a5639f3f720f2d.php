@@ -39,7 +39,7 @@ class SystemContainer extends Nette\DI\Container
 				'nette.templateFactory',
 				'database.default',
 				'database.default.context',
-				'22_App_Model_UserManager',
+				'23_App_Model_UserManager',
 				'FakturaRepository',
 				'FirmaRepository',
 				'PraceRepository',
@@ -72,8 +72,8 @@ class SystemContainer extends Nette\DI\Container
 			'nette\\bridges\\applicationlatte\\templatefactory' => array('nette.templateFactory'),
 			'nette\\database\\connection' => array('database.default'),
 			'nette\\database\\context' => array('database.default.context'),
-			'nette\\security\\iauthenticator' => array('22_App_Model_UserManager'),
-			'app\\model\\usermanager' => array('22_App_Model_UserManager'),
+			'nette\\security\\iauthenticator' => array('23_App_Model_UserManager'),
+			'app\\model\\usermanager' => array('23_App_Model_UserManager'),
 			'fakturace\\repository' => array(
 				'FakturaRepository',
 				'FirmaRepository',
@@ -111,7 +111,7 @@ class SystemContainer extends Nette\DI\Container
 	/**
 	 * @return App\Model\UserManager
 	 */
-	public function createService__22_App_Model_UserManager()
+	public function createService__23_App_Model_UserManager()
 	{
 		$service = new App\Model\UserManager($this->getService('database.default.context'));
 		return $service;
@@ -405,7 +405,7 @@ class SystemContainer extends Nette\DI\Container
 	 */
 	public function createServiceUser()
 	{
-		$service = new Nette\Security\User($this->getService('nette.userStorage'), $this->getService('22_App_Model_UserManager'));
+		$service = new Nette\Security\User($this->getService('nette.userStorage'), $this->getService('23_App_Model_UserManager'));
 		Tracy\Debugger::getBar()->addPanel(new Nette\Bridges\SecurityTracy\UserPanel($service));
 		return $service;
 	}
@@ -414,7 +414,6 @@ class SystemContainer extends Nette\DI\Container
 	public function initialize()
 	{
 		date_default_timezone_set('Europe/Prague');
-		Nette\Caching\Storages\FileStorage::$useDirectories = TRUE;
 		$this->getByType("Nette\Http\Session")->exists() && $this->getByType("Nette\Http\Session")->start();
 		header('X-Frame-Options: SAMEORIGIN');
 		header('X-Powered-By: Nette Framework');
@@ -434,7 +433,7 @@ final class SystemContainer_Nette_Bridges_ApplicationLatte_ILatteFactoryImpl_net
 	private $container;
 
 
-	public function __construct(Nette\DI\Container $container)
+	public function __construct(SystemContainer $container)
 	{
 		$this->container = $container;
 	}

@@ -1,8 +1,8 @@
 <?php
 
 /**
- * This file is part of the Nette Framework (http://nette.org)
- * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
+ * This file is part of the Nette Framework (https://nette.org)
+ * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
  */
 
 namespace Nette\Http;
@@ -414,9 +414,9 @@ class Url extends Nette\Object
 	{
 		$url = new self($url);
 		parse_str($url->query, $query);
-		sort($query);
+		ksort($query);
 		parse_str($this->query, $query2);
-		sort($query2);
+		ksort($query2);
 		$http = in_array($this->scheme, array('http', 'https'), TRUE);
 		return $url->scheme === $this->scheme
 			&& !strcasecmp(rawurldecode($url->host), rawurldecode($this->host))
@@ -435,9 +435,9 @@ class Url extends Nette\Object
 	 */
 	public function canonicalize()
 	{
-		$this->path = $this->path === '' ? '/' : self::unescape($this->path, '%/');
+		$this->path = $this->path === '' ? '/' : self::unescape($this->path, '%/#?');
 		$this->host = strtolower(rawurldecode($this->host));
-		$this->query = self::unescape(strtr($this->query, '+', ' '), '%&;=+');
+		$this->query = self::unescape(strtr($this->query, '+', ' '), '%&;=+#');
 		return $this;
 	}
 
@@ -465,7 +465,7 @@ class Url extends Nette\Object
 		if ($reserved !== '') {
 			$s = preg_replace_callback(
 				'#%(' . substr(chunk_split(bin2hex($reserved), 2, '|'), 0, -1) . ')#i',
-				function($m) { return '%25' . strtoupper($m[1]); },
+				function ($m) { return '%25' . strtoupper($m[1]); },
 				$s
 			);
 		}

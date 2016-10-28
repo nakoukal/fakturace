@@ -1,8 +1,8 @@
 <?php
 
 /**
- * This file is part of the Tracy (http://tracy.nette.org)
- * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
+ * This file is part of the Tracy (https://tracy.nette.org)
+ * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
  */
 
 namespace Tracy;
@@ -71,7 +71,7 @@ class OutputDebugger
 			}
 
 			$res .= Helpers::editorLink($item[0], $item[1]) . ' '
-				. '<span title="' . htmlspecialchars(implode("\n", $stack)) . '">'
+				. '<span title="' . htmlspecialchars(implode("\n", $stack), ENT_IGNORE | ENT_QUOTES, 'UTF-8') . '">'
 				. str_replace(self::BOM, '<big>BOM</big>', Dumper::toHtml($item[2]))
 				. "</span><br>\n";
 		}

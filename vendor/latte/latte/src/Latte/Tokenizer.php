@@ -1,8 +1,8 @@
 <?php
 
 /**
- * This file is part of the Nette Framework (http://nette.org)
- * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
+ * This file is part of the Latte (https://latte.nette.org)
+ * Copyright (c) 2008 David Grudl (https://davidgrudl.com)
  */
 
 namespace Latte;
@@ -57,7 +57,8 @@ class Tokenizer extends Object
 				if (!isset($match[$i])) {
 					break;
 				} elseif ($match[$i] != NULL) {
-					$type = $this->types[$i - 1]; break;
+					$type = $this->types[$i - 1];
+					break;
 				}
 			}
 			$match = array(self::VALUE => $match[0], self::OFFSET => $len, self::TYPE => $type);

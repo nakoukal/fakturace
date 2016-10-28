@@ -1,14 +1,14 @@
 <?php
 
 /**
- * This file is part of the Nette Framework (http://nette.org)
- * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
+ * This file is part of the Nette Framework (https://nette.org)
+ * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
  */
 
 namespace Nette\Application\UI;
 
-use Nette,
-	Nette\Application\BadRequestException;
+use Nette;
+use Nette\Application\BadRequestException;
 
 
 /**
@@ -101,11 +101,13 @@ class PresenterComponentReflection extends Nette\Reflection\ClassType
 	{
 		$class = $this->getName();
 		$cache = & self::$mcCache[strtolower($class . ':' . $method)];
-		if ($cache === NULL) try {
-			$cache = FALSE;
-			$rm = Nette\Reflection\Method::from($class, $method);
-			$cache = $this->isInstantiable() && $rm->isPublic() && !$rm->isAbstract() && !$rm->isStatic();
-		} catch (\ReflectionException $e) {
+		if ($cache === NULL) {
+			try {
+				$cache = FALSE;
+				$rm = Nette\Reflection\Method::from($class, $method);
+				$cache = $this->isInstantiable() && $rm->isPublic() && !$rm->isAbstract() && !$rm->isStatic();
+			} catch (\ReflectionException $e) {
+			}
 		}
 		return $cache;
 	}

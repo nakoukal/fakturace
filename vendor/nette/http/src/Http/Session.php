@@ -1,8 +1,8 @@
 <?php
 
 /**
- * This file is part of the Nette Framework (http://nette.org)
- * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
+ * This file is part of the Nette Framework (https://nette.org)
+ * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
  */
 
 namespace Nette\Http;
@@ -14,14 +14,6 @@ use Nette;
  * Provides access to session sections as well as session settings and management methods.
  *
  * @author     David Grudl
- *
- * @property-read bool $started
- * @property-read string $id
- * @property   string $name
- * @property-read \ArrayIterator $iterator
- * @property   array $options
- * @property-write $savePath
- * @property-write ISessionStorage $storage
  */
 class Session extends Nette\Object
 {
@@ -63,6 +55,9 @@ class Session extends Nette\Object
 	/** @var IResponse */
 	private $response;
 
+	/** @var \SessionHandlerInterface */
+	private $handler;
+
 
 	public function __construct(IRequest $request, IResponse $response)
 	{
@@ -84,20 +79,25 @@ class Session extends Nette\Object
 
 		$this->configure($this->options);
 
-		$id = & $_COOKIE[session_name()];
-		if (!is_string($id) || !preg_match('#^[0-9a-zA-Z,-]{22,128}\z#i', $id)) {
+		$id = $this->request->getCookie(session_name());
+		if (is_string($id) && preg_match('#^[0-9a-zA-Z,-]{22,128}\z#i', $id)) {
+			session_id($id);
+		} else {
 			unset($_COOKIE[session_name()]);
 		}
 
+		try {
 		// session_start returns FALSE on failure only sometimes
-		Nette\Utils\Callback::invokeSafe('session_start', array(), function($message) use (& $error) {
-			$error = $message;
-		});
+			Nette\Utils\Callback::invokeSafe('session_start', array(), function ($message) use (& $e) {
+				$e = new Nette\InvalidStateException($message);
+			});
+		} catch (\Exception $e) {
+		}
 
 		$this->response->removeDuplicateCookies();
-		if ($error) {
+		if ($e) {
 			@session_write_close(); // this is needed
-			throw new Nette\InvalidStateException($error);
+			throw $e;
 		}
 
 		self::$started = TRUE;
@@ -217,9 +217,11 @@ class Session extends Nette\Object
 	{
 		if (self::$started && !$this->regenerated) {
 			if (headers_sent($file, $line)) {
-				throw new Nette\InvalidStateException("Cannot regenerate session ID after HTTP headers have been sent" . ($file ? " (output started at $file:$line)." : "."));
+				throw new Nette\InvalidStateException('Cannot regenerate session ID after HTTP headers have been sent' . ($file ? " (output started at $file:$line)." : '.'));
 			}
-			session_regenerate_id(TRUE);
+			if (session_id() !== '') {
+				session_regenerate_id(TRUE);
+			}
 			session_write_close();
 			$backup = $_SESSION;
 			session_start();
@@ -407,7 +409,7 @@ class Session extends Nette\Object
 
 			} else {
 				if (defined('SID')) {
-					throw new Nette\InvalidStateException("Unable to set 'session.$key' to value '$value' when session has been started" . ($this->started ? "." : " by session.auto_start or session_start()."));
+					throw new Nette\InvalidStateException("Unable to set 'session.$key' to value '$value' when session has been started" . ($this->started ? '.' : ' by session.auto_start or session_start().'));
 				}
 				if (isset($special[$key])) {
 					$key = "session_$key";
@@ -430,6 +432,10 @@ class Session extends Nette\Object
 			if (self::$started) {
 				$this->sendCookie();
 			}
+		}
+
+		if ($this->handler) {
+			session_set_save_handler($this->handler);
 		}
 	}
 
@@ -469,7 +475,7 @@ class Session extends Nette\Object
 		return $this->setOptions(array(
 			'cookie_path' => $path,
 			'cookie_domain' => $domain,
-			'cookie_secure' => $secure
+			'cookie_secure' => $secure,
 		));
 	}
 
@@ -522,7 +528,7 @@ class Session extends Nette\Object
 		if (self::$started) {
 			throw new Nette\InvalidStateException('Unable to set handler when session has been started.');
 		}
-		session_set_save_handler($handler);
+		$this->handler = $handler;
 		return $this;
 	}
 

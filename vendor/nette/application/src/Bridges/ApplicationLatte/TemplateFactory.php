@@ -1,18 +1,14 @@
 <?php
 
 /**
- * This file is part of the Nette Framework (http://nette.org)
- *
- * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
- *
- * For the full copyright and license information, please view
- * the file license.txt that was distributed with this source code.
+ * This file is part of the Nette Framework (https://nette.org)
+ * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
  */
 
 namespace Nette\Bridges\ApplicationLatte;
 
-use Nette,
-	Nette\Application\UI;
+use Nette;
+use Nette\Application\UI;
 
 
 /**
@@ -22,7 +18,7 @@ use Nette,
  */
 class TemplateFactory extends Nette\Object implements UI\ITemplateFactory
 {
-	/** @var Nette\Bridges\ApplicationLatte\ILatteFactory */
+	/** @var ILatteFactory */
 	private $latteFactory;
 
 	/** @var Nette\Http\IRequest */
@@ -66,11 +62,13 @@ class TemplateFactory extends Nette\Object implements UI\ITemplateFactory
 			$latte->onCompile = iterator_to_array($latte->onCompile);
 		}
 
-		array_unshift($latte->onCompile, function($latte) use ($control, $template) {
+		array_unshift($latte->onCompile, function ($latte) use ($control, $template) {
 			$latte->getParser()->shortNoEscape = TRUE;
 			$latte->getCompiler()->addMacro('cache', new Nette\Bridges\CacheLatte\CacheMacro($latte->getCompiler()));
 			UIMacros::install($latte->getCompiler());
-			Nette\Bridges\FormsLatte\FormMacros::install($latte->getCompiler());
+			if (class_exists('Nette\Bridges\FormsLatte\FormMacros')) {
+				Nette\Bridges\FormsLatte\FormMacros::install($latte->getCompiler());
+			}
 			$control->templatePrepareFilters($template);
 		});
 
@@ -78,11 +76,11 @@ class TemplateFactory extends Nette\Object implements UI\ITemplateFactory
 		foreach (array('normalize', 'toAscii', 'webalize', 'padLeft', 'padRight', 'reverse') as $name) {
 			$latte->addFilter($name, 'Nette\Utils\Strings::' . $name);
 		}
-		$latte->addFilter('null', function() {});
-		$latte->addFilter('length', function($var) {
+		$latte->addFilter('null', function () {});
+		$latte->addFilter('length', function ($var) {
 			return is_string($var) ? Nette\Utils\Strings::length($var) : count($var);
 		});
-		$latte->addFilter('modifyDate', function($time, $delta, $unit = NULL) {
+		$latte->addFilter('modifyDate', function ($time, $delta, $unit = NULL) {
 			return $time == NULL ? NULL : Nette\Utils\DateTime::from($time)->modify($delta . $unit); // intentionally ==
 		});
 

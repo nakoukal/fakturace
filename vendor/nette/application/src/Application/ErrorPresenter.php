@@ -1,15 +1,15 @@
 <?php
 
 /**
- * This file is part of the Nette Framework (http://nette.org)
- * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
+ * This file is part of the Nette Framework (https://nette.org)
+ * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
  */
 
 namespace NetteModule;
 
-use Nette,
-	Nette\Application,
-	Tracy\Debugger;
+use Nette;
+use Nette\Application;
+use Tracy\Debugger;
 
 
 /**
@@ -30,7 +30,7 @@ class ErrorPresenter extends Nette\Object implements Application\IPresenter
 			$code = $e->getCode();
 		} else {
 			$code = 500;
-			Debugger::log($e, Debugger::ERROR);
+			Debugger::log($e, Debugger::EXCEPTION);
 		}
 		ob_start();
 		require __DIR__ . '/templates/error.phtml';

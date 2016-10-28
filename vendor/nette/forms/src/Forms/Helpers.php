@@ -1,15 +1,15 @@
 <?php
 
 /**
- * This file is part of the Nette Framework (http://nette.org)
- * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
+ * This file is part of the Nette Framework (https://nette.org)
+ * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
  */
 
 namespace Nette\Forms;
 
-use Nette,
-	Nette\Utils\Strings,
-	Nette\Utils\Html;
+use Nette;
+use Nette\Utils\Strings;
+use Nette\Utils\Html;
 
 
 /**
@@ -116,7 +116,7 @@ class Helpers extends Nette\Object
 			$res .= ($res === '' && $wrapperEnd === '' ? '' : $wrapper)
 				. $labelTag . $label->attributes() . '>'
 				. $inputTag . $input->attributes() . (Html::$xhtml ? ' />' : '>')
-				. ($caption instanceof Html ? $caption : htmlspecialchars($caption))
+				. ($caption instanceof Html ? $caption : htmlspecialchars($caption, ENT_NOQUOTES, 'UTF-8'))
 				. '</label>'
 				. $wrapperEnd;
 		}
@@ -125,7 +125,7 @@ class Helpers extends Nette\Object
 
 
 	/**
-	 * @return Nette\Utils\Html
+	 * @return Html
 	 */
 	public static function createSelectBox(array $items, array $optionAttrs = NULL)
 	{
@@ -149,7 +149,7 @@ class Helpers extends Nette\Object
 					$res .= $caption->setName('option')->addAttributes($option->attrs);
 				} else {
 					$res .= $optionTag . $option->attributes() . '>'
-						. htmlspecialchars($caption)
+						. htmlspecialchars($caption, ENT_NOQUOTES, 'UTF-8')
 						. '</option>';
 				}
 			}

@@ -1,14 +1,14 @@
 <?php
 
 /**
- * This file is part of the Nette Framework (http://nette.org)
- * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
+ * This file is part of the Nette Framework (https://nette.org)
+ * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
  */
 
 namespace Nette\Forms\Controls;
 
-use Nette,
-	Nette\Utils\Html;
+use Nette;
+use Nette\Utils\Html;
 
 
 /**
@@ -16,19 +16,19 @@ use Nette,
  *
  * @author     David Grudl
  *
- * @property-read Nette\Utils\Html $separatorPrototype
- * @property-read Nette\Utils\Html $containerPrototype
- * @property-read Nette\Utils\Html $itemLabelPrototype
+ * @property-read Html $separatorPrototype
+ * @property-read Html $containerPrototype
+ * @property-read Html $itemLabelPrototype
  */
 class RadioList extends ChoiceControl
 {
-	/** @var Nette\Utils\Html  separator element template */
+	/** @var Html  separator element template */
 	protected $separator;
 
-	/** @var Nette\Utils\Html  container element template */
+	/** @var Html  container element template */
 	protected $container;
 
-	/** @var Nette\Utils\Html  item label template */
+	/** @var Html  item label template */
 	protected $itemLabel;
 
 
@@ -47,48 +47,8 @@ class RadioList extends ChoiceControl
 
 
 	/**
-	 * Returns selected radio value.
-	 * @return mixed
-	 */
-	public function getValue()
-	{
-		return parent::getValue();
-	}
-
-
-	/**
-	 * Returns separator HTML element template.
-	 * @return Nette\Utils\Html
-	 */
-	public function getSeparatorPrototype()
-	{
-		return $this->separator;
-	}
-
-
-	/**
-	 * Returns container HTML element template.
-	 * @return Nette\Utils\Html
-	 */
-	public function getContainerPrototype()
-	{
-		return $this->container;
-	}
-
-
-	/**
-	 * Returns item label HTML element template.
-	 * @return Nette\Utils\Html
-	 */
-	public function getItemLabelPrototype()
-	{
-		return $this->itemLabel;
-	}
-
-
-	/**
 	 * Generates control's HTML element.
-	 * @return Nette\Utils\Html
+	 * @return Html
 	 */
 	public function getControl($key = NULL)
 	{
@@ -122,7 +82,7 @@ class RadioList extends ChoiceControl
 	/**
 	 * Generates label's HTML element.
 	 * @param  string
-	 * @return Nette\Utils\Html
+	 * @return Html
 	 */
 	public function getLabel($caption = NULL, $key = NULL)
 	{
@@ -135,10 +95,11 @@ class RadioList extends ChoiceControl
 
 
 	/**
-	 * @return Nette\Utils\Html
+	 * @return Html
 	 */
 	public function getControlPart($key)
 	{
+		$key = key(array((string) $key => NULL));
 		return parent::getControl()->addAttributes(array(
 			'id' => $this->getHtmlId() . '-' . $key,
 			'checked' => in_array($key, (array) $this->value, TRUE),
@@ -149,11 +110,41 @@ class RadioList extends ChoiceControl
 
 
 	/**
-	 * @return Nette\Utils\Html
+	 * @return Html
 	 */
 	public function getLabelPart($key)
 	{
 		return parent::getLabel($this->items[$key])->for($this->getHtmlId() . '-' . $key);
+	}
+
+
+	/**
+	 * Returns separator HTML element template.
+	 * @return Html
+	 */
+	public function getSeparatorPrototype()
+	{
+		return $this->separator;
+	}
+
+
+	/**
+	 * Returns container HTML element template.
+	 * @return Html
+	 */
+	public function getContainerPrototype()
+	{
+		return $this->container;
+	}
+
+
+	/**
+	 * Returns item label HTML element template.
+	 * @return Html
+	 */
+	public function getItemLabelPrototype()
+	{
+		return $this->itemLabel;
 	}
 
 }
